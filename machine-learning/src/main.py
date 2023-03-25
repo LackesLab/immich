@@ -43,7 +43,6 @@ def image_classification():
 def facial_recognition():
     assetPath = request.json['thumbnailPath']
     return face_processor.process_image(assetPath), 201
-    #return run_engine(classifier, assetPath), 201
 
 def run_engine(engine, path):
     result = []
