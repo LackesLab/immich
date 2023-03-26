@@ -34,7 +34,8 @@
 			[JobName.ClipEncodingQueue]: 'Clip Encoding',
 			[JobName.BackgroundTaskQueue]: 'Background Task',
 			[JobName.StorageTemplateMigrationQueue]: 'Storage Template Migration',
-			[JobName.SearchQueue]: 'Search'
+			[JobName.SearchQueue]: 'Search',
+			[JobName.RecognizeFacesQueue]: 'Recognize Faces'
 		};
 
 		return names[jobName];
@@ -82,6 +83,13 @@
 		>
 			Note that some assets may not have any objects detected
 		</JobTile>
+
+		<JobTile
+			title="Recognize Faces"
+			subtitle="Run machine learning to recognize faces"
+			on:click={(e) => start(JobName.RecognizeFacesQueue, e.detail.force)}
+			jobCounts={jobs[JobName.RecognizeFacesQueue]}
+		/>
 
 		<JobTile
 			title="Encode Clip"

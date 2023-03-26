@@ -41,6 +41,11 @@ void main() {
       // TODO
     });
 
+    // JobCountsDto recognizeFaces
+    test('to test the property `recognizeFaces`', () async {
+      // TODO
+    });
+
     // JobCountsDto storageTemplateMigrationQueue
     test('to test the property `storageTemplateMigrationQueue`', () async {
       // TODO

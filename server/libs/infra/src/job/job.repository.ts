@@ -19,6 +19,7 @@ export class JobRepository implements IJobRepository {
     [QueueName.THUMBNAIL_GENERATION]: this.generateThumbnail,
     [QueueName.METADATA_EXTRACTION]: this.metadataExtraction,
     [QueueName.OBJECT_TAGGING]: this.objectTagging,
+    [QueueName.RECOGNIZE_FACES]: this.recognizeFaces,
     [QueueName.CLIP_ENCODING]: this.clipEmbedding,
     [QueueName.VIDEO_CONVERSION]: this.videoTranscode,
     [QueueName.BACKGROUND_TASK]: this.backgroundTask,
@@ -29,6 +30,7 @@ export class JobRepository implements IJobRepository {
     @InjectQueue(QueueName.BACKGROUND_TASK) private backgroundTask: Queue,
     @InjectQueue(QueueName.OBJECT_TAGGING) private objectTagging: Queue<IAssetJob | IBaseJob>,
     @InjectQueue(QueueName.CLIP_ENCODING) private clipEmbedding: Queue<IAssetJob | IBaseJob>,
+    @InjectQueue(QueueName.RECOGNIZE_FACES) private recognizeFaces: Queue<IAssetJob | IBaseJob>,
     @InjectQueue(QueueName.METADATA_EXTRACTION) private metadataExtraction: Queue<IMetadataExtractionJob | IBaseJob>,
     @InjectQueue(QueueName.STORAGE_TEMPLATE_MIGRATION) private storageTemplateMigration: Queue,
     @InjectQueue(QueueName.THUMBNAIL_GENERATION) private generateThumbnail: Queue,
@@ -80,6 +82,10 @@ export class JobRepository implements IJobRepository {
       case JobName.REVERSE_GEOCODING:
         await this.metadataExtraction.add(item.name, item.data);
         break;
+
+      case JobName.QUEUE_RECOGNIZE_FACES:
+      case JobName.RECOGNIZE_FACES:
+        await this.recognizeFaces.add(item.name, item.data);
 
       case JobName.QUEUE_GENERATE_THUMBNAILS:
       case JobName.GENERATE_JPEG_THUMBNAIL:

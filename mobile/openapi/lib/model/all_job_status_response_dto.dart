@@ -18,6 +18,7 @@ class AllJobStatusResponseDto {
     required this.videoConversionQueue,
     required this.objectTaggingQueue,
     required this.clipEncodingQueue,
+    required this.recognizeFaces,
     required this.storageTemplateMigrationQueue,
     required this.backgroundTaskQueue,
     required this.searchQueue,
@@ -33,6 +34,8 @@ class AllJobStatusResponseDto {
 
   JobCountsDto clipEncodingQueue;
 
+  JobCountsDto recognizeFaces;
+
   JobCountsDto storageTemplateMigrationQueue;
 
   JobCountsDto backgroundTaskQueue;
@@ -46,6 +49,7 @@ class AllJobStatusResponseDto {
      other.videoConversionQueue == videoConversionQueue &&
      other.objectTaggingQueue == objectTaggingQueue &&
      other.clipEncodingQueue == clipEncodingQueue &&
+     other.recognizeFaces == recognizeFaces &&
      other.storageTemplateMigrationQueue == storageTemplateMigrationQueue &&
      other.backgroundTaskQueue == backgroundTaskQueue &&
      other.searchQueue == searchQueue;
@@ -58,12 +62,13 @@ class AllJobStatusResponseDto {
     (videoConversionQueue.hashCode) +
     (objectTaggingQueue.hashCode) +
     (clipEncodingQueue.hashCode) +
+    (recognizeFaces.hashCode) +
     (storageTemplateMigrationQueue.hashCode) +
     (backgroundTaskQueue.hashCode) +
     (searchQueue.hashCode);
 
   @override
-  String toString() => 'AllJobStatusResponseDto[thumbnailGenerationQueue=$thumbnailGenerationQueue, metadataExtractionQueue=$metadataExtractionQueue, videoConversionQueue=$videoConversionQueue, objectTaggingQueue=$objectTaggingQueue, clipEncodingQueue=$clipEncodingQueue, storageTemplateMigrationQueue=$storageTemplateMigrationQueue, backgroundTaskQueue=$backgroundTaskQueue, searchQueue=$searchQueue]';
+  String toString() => 'AllJobStatusResponseDto[thumbnailGenerationQueue=$thumbnailGenerationQueue, metadataExtractionQueue=$metadataExtractionQueue, videoConversionQueue=$videoConversionQueue, objectTaggingQueue=$objectTaggingQueue, clipEncodingQueue=$clipEncodingQueue, recognizeFaces=$recognizeFaces, storageTemplateMigrationQueue=$storageTemplateMigrationQueue, backgroundTaskQueue=$backgroundTaskQueue, searchQueue=$searchQueue]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -72,6 +77,7 @@ class AllJobStatusResponseDto {
       json[r'video-conversion-queue'] = this.videoConversionQueue;
       json[r'object-tagging-queue'] = this.objectTaggingQueue;
       json[r'clip-encoding-queue'] = this.clipEncodingQueue;
+      json[r'recognize-faces'] = this.recognizeFaces;
       json[r'storage-template-migration-queue'] = this.storageTemplateMigrationQueue;
       json[r'background-task-queue'] = this.backgroundTaskQueue;
       json[r'search-queue'] = this.searchQueue;
@@ -102,6 +108,7 @@ class AllJobStatusResponseDto {
         videoConversionQueue: JobCountsDto.fromJson(json[r'video-conversion-queue'])!,
         objectTaggingQueue: JobCountsDto.fromJson(json[r'object-tagging-queue'])!,
         clipEncodingQueue: JobCountsDto.fromJson(json[r'clip-encoding-queue'])!,
+        recognizeFaces: JobCountsDto.fromJson(json[r'recognize-faces'])!,
         storageTemplateMigrationQueue: JobCountsDto.fromJson(json[r'storage-template-migration-queue'])!,
         backgroundTaskQueue: JobCountsDto.fromJson(json[r'background-task-queue'])!,
         searchQueue: JobCountsDto.fromJson(json[r'search-queue'])!,
@@ -159,6 +166,7 @@ class AllJobStatusResponseDto {
     'video-conversion-queue',
     'object-tagging-queue',
     'clip-encoding-queue',
+    'recognize-faces',
     'storage-template-migration-queue',
     'background-task-queue',
     'search-queue',

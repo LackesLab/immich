@@ -9,5 +9,5 @@ export interface IMachineLearningRepository {
   detectObjects(input: MachineLearningInput): Promise<string[]>;
   encodeImage(input: MachineLearningInput): Promise<number[]>;
   encodeText(input: string): Promise<number[]>;
-  recognizeFaces(input: MachineLearningInput): Promise<string>[];
+  recognizeFaces(input: MachineLearningInput): Promise<any[]>;
 }

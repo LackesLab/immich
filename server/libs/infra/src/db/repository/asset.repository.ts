@@ -125,6 +125,18 @@ export class AssetRepository implements IAssetRepository {
         };
         break;
 
+      case WithoutProperty.FACES:
+        relations = {
+          smartInfo: true,
+        };
+        where = {
+          resizePath: IsNull(),
+          isVisible: true,
+          smartInfo: {
+            // TODO: faces: IsNull(),
+          },
+        };
+
       default:
         throw new Error(`Invalid getWithout property: ${property}`);
     }

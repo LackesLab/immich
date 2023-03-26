@@ -3767,6 +3767,9 @@
           "clip-encoding-queue": {
             "$ref": "#/components/schemas/JobCountsDto"
           },
+          "recognize-faces-queue": {
+            "$ref": "#/components/schemas/JobCountsDto"
+          },
           "storage-template-migration-queue": {
             "$ref": "#/components/schemas/JobCountsDto"
           },
@@ -3783,6 +3786,7 @@
           "video-conversion-queue",
           "object-tagging-queue",
           "clip-encoding-queue",
+          "recognize-faces-queue",
           "storage-template-migration-queue",
           "background-task-queue",
           "search-queue"
@@ -3795,6 +3799,7 @@
           "metadata-extraction-queue",
           "video-conversion-queue",
           "object-tagging-queue",
+          "recognize-faces-queue",
           "clip-encoding-queue",
           "background-task-queue",
           "storage-template-migration-queue",

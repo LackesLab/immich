@@ -25,4 +25,7 @@ export class SmartInfoEntity {
     // scale: 19,
   })
   clipEmbedding!: number[] | null;
+
+  // TODO: @Column({ type: '?', array: true})
+  faces!: any[];
 }

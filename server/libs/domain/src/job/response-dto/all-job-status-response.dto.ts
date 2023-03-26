@@ -31,6 +31,9 @@ export class AllJobStatusResponseDto implements Record<QueueName, JobCountsDto> 
   [QueueName.CLIP_ENCODING]!: JobCountsDto;
 
   @ApiProperty({ type: JobCountsDto })
+  [QueueName.RECOGNIZE_FACES]!: JobCountsDto;
+
+  @ApiProperty({ type: JobCountsDto })
   [QueueName.STORAGE_TEMPLATE_MIGRATION]!: JobCountsDto;
 
   @ApiProperty({ type: JobCountsDto })

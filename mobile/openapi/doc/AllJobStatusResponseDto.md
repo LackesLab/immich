@@ -13,6 +13,7 @@ Name | Type | Description | Notes
 **videoConversionQueue** | [**JobCountsDto**](JobCountsDto.md) |  | 
 **objectTaggingQueue** | [**JobCountsDto**](JobCountsDto.md) |  | 
 **clipEncodingQueue** | [**JobCountsDto**](JobCountsDto.md) |  | 
+**recognizeFaces** | [**JobCountsDto**](JobCountsDto.md) |  | 
 **storageTemplateMigrationQueue** | [**JobCountsDto**](JobCountsDto.md) |  | 
 **backgroundTaskQueue** | [**JobCountsDto**](JobCountsDto.md) |  | 
 **searchQueue** | [**JobCountsDto**](JobCountsDto.md) |  | 

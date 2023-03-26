@@ -11,6 +11,7 @@ export enum WithoutProperty {
   EXIF = 'exif',
   CLIP_ENCODING = 'clip-embedding',
   OBJECT_TAGS = 'object-tags',
+  FACES = 'faces',
 }
 
 export const IAssetRepository = 'IAssetRepository';

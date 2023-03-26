@@ -27,6 +27,7 @@ class JobName {
   static const metadataExtractionQueue = JobName._(r'metadata-extraction-queue');
   static const videoConversionQueue = JobName._(r'video-conversion-queue');
   static const objectTaggingQueue = JobName._(r'object-tagging-queue');
+  static const recognizeFaces = JobName._(r'recognize-faces');
   static const clipEncodingQueue = JobName._(r'clip-encoding-queue');
   static const backgroundTaskQueue = JobName._(r'background-task-queue');
   static const storageTemplateMigrationQueue = JobName._(r'storage-template-migration-queue');
@@ -38,6 +39,7 @@ class JobName {
     metadataExtractionQueue,
     videoConversionQueue,
     objectTaggingQueue,
+    recognizeFaces,
     clipEncodingQueue,
     backgroundTaskQueue,
     storageTemplateMigrationQueue,
@@ -84,6 +86,7 @@ class JobNameTypeTransformer {
         case r'metadata-extraction-queue': return JobName.metadataExtractionQueue;
         case r'video-conversion-queue': return JobName.videoConversionQueue;
         case r'object-tagging-queue': return JobName.objectTaggingQueue;
+        case r'recognize-faces': return JobName.recognizeFaces;
         case r'clip-encoding-queue': return JobName.clipEncodingQueue;
         case r'background-task-queue': return JobName.backgroundTaskQueue;
         case r'storage-template-migration-queue': return JobName.storageTemplateMigrationQueue;
