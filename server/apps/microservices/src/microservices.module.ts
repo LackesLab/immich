@@ -1,4 +1,4 @@
-import { immichAppConfig } from '@app/common/config';
+import { immichAppConfig } from '@app/domain';
 import { DomainModule } from '@app/domain';
 import { ExifEntity, InfraModule } from '@app/infra';
 import { Module } from '@nestjs/common';
@@ -6,7 +6,8 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   BackgroundTaskProcessor,
-  MachineLearningProcessor,
+  ClipEncodingProcessor,
+  ObjectTaggingProcessor,
   SearchIndexProcessor,
   StorageTemplateMigrationProcessor,
   ThumbnailGeneratorProcessor,
@@ -24,7 +25,8 @@ import { VideoTranscodeProcessor } from './processors/video-transcode.processor'
     ThumbnailGeneratorProcessor,
     MetadataExtractionProcessor,
     VideoTranscodeProcessor,
-    MachineLearningProcessor,
+    ObjectTaggingProcessor,
+    ClipEncodingProcessor,
     StorageTemplateMigrationProcessor,
     BackgroundTaskProcessor,
     SearchIndexProcessor,

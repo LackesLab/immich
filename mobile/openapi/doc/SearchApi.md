@@ -113,7 +113,7 @@ This endpoint does not need any parameter.
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **search**
-> SearchResponseDto search(query, type, isFavorite, exifInfoPeriodCity, exifInfoPeriodState, exifInfoPeriodCountry, exifInfoPeriodMake, exifInfoPeriodModel, smartInfoPeriodObjects, smartInfoPeriodTags, recent, motion)
+> SearchResponseDto search(q, query, clip, type, isFavorite, exifInfoPeriodCity, exifInfoPeriodState, exifInfoPeriodCountry, exifInfoPeriodMake, exifInfoPeriodModel, smartInfoPeriodObjects, smartInfoPeriodTags, recent, motion)
 
 
 
@@ -134,7 +134,9 @@ import 'package:openapi/api.dart';
 //defaultApiClient.getAuthentication<ApiKeyAuth>('cookie').apiKeyPrefix = 'Bearer';
 
 final api_instance = SearchApi();
+final q = q_example; // String | 
 final query = query_example; // String | 
+final clip = true; // bool | 
 final type = type_example; // String | 
 final isFavorite = true; // bool | 
 final exifInfoPeriodCity = exifInfoPeriodCity_example; // String | 
@@ -148,7 +150,7 @@ final recent = true; // bool |
 final motion = true; // bool | 
 
 try {
-    final result = api_instance.search(query, type, isFavorite, exifInfoPeriodCity, exifInfoPeriodState, exifInfoPeriodCountry, exifInfoPeriodMake, exifInfoPeriodModel, smartInfoPeriodObjects, smartInfoPeriodTags, recent, motion);
+    final result = api_instance.search(q, query, clip, type, isFavorite, exifInfoPeriodCity, exifInfoPeriodState, exifInfoPeriodCountry, exifInfoPeriodMake, exifInfoPeriodModel, smartInfoPeriodObjects, smartInfoPeriodTags, recent, motion);
     print(result);
 } catch (e) {
     print('Exception when calling SearchApi->search: $e\n');
@@ -159,7 +161,9 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
+ **q** | **String**|  | [optional] 
  **query** | **String**|  | [optional] 
+ **clip** | **bool**|  | [optional] 
  **type** | **String**|  | [optional] 
  **isFavorite** | **bool**|  | [optional] 
  **exifInfoPeriodCity** | **String**|  | [optional] 

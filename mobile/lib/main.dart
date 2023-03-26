@@ -9,6 +9,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:immich_mobile/constants/locales.dart';
 import 'package:immich_mobile/modules/backup/background_service/background.service.dart';
+import 'package:immich_mobile/modules/backup/models/backup_album.model.dart';
+import 'package:immich_mobile/modules/backup/models/duplicated_asset.model.dart';
 import 'package:immich_mobile/modules/backup/models/hive_backup_albums.model.dart';
 import 'package:immich_mobile/modules/backup/models/hive_duplicated_assets.model.dart';
 import 'package:immich_mobile/modules/backup/providers/backup.provider.dart';
@@ -23,6 +25,7 @@ import 'package:immich_mobile/shared/models/album.dart';
 import 'package:immich_mobile/shared/models/asset.dart';
 import 'package:immich_mobile/shared/models/exif_info.dart';
 import 'package:immich_mobile/shared/models/immich_logger_message.model.dart';
+import 'package:immich_mobile/shared/models/logger_message.model.dart';
 import 'package:immich_mobile/shared/models/store.dart';
 import 'package:immich_mobile/shared/models/user.dart';
 import 'package:immich_mobile/shared/providers/app_state.provider.dart';
@@ -40,25 +43,14 @@ import 'package:isar/isar.dart';
 import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'constants/hive_box.dart';
 
 void main() async {
-  await initApp();
+  WidgetsFlutterBinding.ensureInitialized();
   final db = await loadDb();
+  await initApp();
   await migrateHiveToStoreIfNecessary();
   await migrateJsonCacheIfNecessary();
   runApp(getMainWidget(db));
-}
-
-Future<void> openBoxes() async {
-  await Future.wait([
-    Hive.openBox<ImmichLoggerMessage>(immichLoggerBox),
-    Hive.openBox(userInfoBox),
-    Hive.openBox<HiveSavedLoginInfo>(hiveLoginInfoBox),
-    Hive.openBox(hiveGithubReleaseInfoBox),
-    Hive.openBox(userSettingInfoBox),
-    EasyLocalization.ensureInitialized(),
-  ]);
 }
 
 Future<void> initApp() async {
@@ -67,8 +59,7 @@ Future<void> initApp() async {
   Hive.registerAdapter(HiveBackupAlbumsAdapter());
   Hive.registerAdapter(HiveDuplicatedAssetsAdapter());
   Hive.registerAdapter(ImmichLoggerMessageAdapter());
-
-  await openBoxes();
+  await EasyLocalization.ensureInitialized();
 
   if (kReleaseMode && Platform.isAndroid) {
     try {
@@ -80,7 +71,7 @@ Future<void> initApp() async {
   }
 
   // Initialize Immich Logger Service
-  ImmichLogger().init();
+  ImmichLogger();
 
   var log = Logger("ImmichErrorLogger");
 
@@ -104,6 +95,9 @@ Future<Isar> loadDb() async {
       AssetSchema,
       AlbumSchema,
       UserSchema,
+      BackupAlbumSchema,
+      DuplicatedAssetSchema,
+      LoggerMessageSchema,
     ],
     directory: dir.path,
     maxSizeMiB: 256,
@@ -156,10 +150,12 @@ class ImmichAppState extends ConsumerState<ImmichApp>
 
         ref.watch(releaseInfoProvider.notifier).checkGithubReleaseInfo();
 
-        ref.watch(notificationPermissionProvider.notifier)
-          .getNotificationPermission();
-        ref.watch(galleryPermissionNotifier.notifier)
-          .getGalleryPermissionStatus();
+        ref
+            .watch(notificationPermissionProvider.notifier)
+            .getNotificationPermission();
+        ref
+            .watch(galleryPermissionNotifier.notifier)
+            .getGalleryPermissionStatus();
 
         ref.read(iOSBackgroundSettingsProvider.notifier).refresh();
 
@@ -168,6 +164,7 @@ class ImmichAppState extends ConsumerState<ImmichApp>
       case AppLifecycleState.inactive:
         debugPrint("[APP STATE] inactive");
         ref.watch(appStateProvider.notifier).state = AppStateEnum.inactive;
+        ImmichLogger().flush();
         ref.watch(websocketProvider.notifier).disconnect();
         ref.watch(backupProvider.notifier).cancelBackup();
 

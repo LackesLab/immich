@@ -10,9 +10,7 @@ import 'package:immich_mobile/modules/backup/providers/error_backup_list.provide
 import 'package:immich_mobile/modules/backup/providers/ios_background_settings.provider.dart';
 import 'package:immich_mobile/modules/backup/ui/current_backup_asset_info_box.dart';
 import 'package:immich_mobile/modules/backup/ui/ios_debug_info_tile.dart';
-import 'package:immich_mobile/modules/login/models/authentication_state.model.dart';
 import 'package:immich_mobile/modules/backup/models/backup_state.model.dart';
-import 'package:immich_mobile/modules/login/providers/authentication.provider.dart';
 import 'package:immich_mobile/modules/backup/providers/backup.provider.dart';
 import 'package:immich_mobile/routing/router.dart';
 import 'package:immich_mobile/shared/providers/websocket.provider.dart';
@@ -26,11 +24,10 @@ class BackupControllerPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     BackUpState backupState = ref.watch(backupProvider);
-    AuthenticationState authenticationState = ref.watch(authenticationProvider);
     final settings = ref.watch(iOSBackgroundSettingsProvider.notifier).settings;
 
-    final appRefreshDisabled = Platform.isIOS &&
-      settings?.appRefreshEnabled != true;
+    final appRefreshDisabled =
+        Platform.isIOS && settings?.appRefreshEnabled != true;
     bool hasExclusiveAccess =
         backupState.backupProgress != BackUpProgressEnum.inBackground;
     bool shouldBackup = backupState.allUniqueAssets.length -
@@ -102,11 +99,11 @@ class BackupControllerPage extends HookConsumerWidget {
     }
 
     ListTile buildAutoBackupController() {
-      var backUpOption = authenticationState.deviceInfo.isAutoBackup
+      final isAutoBackup = backupState.autoBackup;
+      final backUpOption = isAutoBackup
           ? "backup_controller_page_status_on".tr()
           : "backup_controller_page_status_off".tr();
-      var isAutoBackup = authenticationState.deviceInfo.isAutoBackup;
-      var backupBtnText = authenticationState.deviceInfo.isAutoBackup
+      final backupBtnText = isAutoBackup
           ? "backup_controller_page_turn_off".tr()
           : "backup_controller_page_turn_on".tr();
       return ListTile(
@@ -134,17 +131,9 @@ class BackupControllerPage extends HookConsumerWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
                 child: ElevatedButton(
-                  onPressed: () {
-                    if (isAutoBackup) {
-                      ref
-                          .read(authenticationProvider.notifier)
-                          .setAutoBackup(false);
-                    } else {
-                      ref
-                          .read(authenticationProvider.notifier)
-                          .setAutoBackup(true);
-                    }
-                  },
+                  onPressed: () => ref
+                      .read(backupProvider.notifier)
+                      .setAutoBackup(!isAutoBackup),
                   child: Text(
                     backupBtnText,
                     style: const TextStyle(
@@ -292,15 +281,13 @@ class BackupControllerPage extends HookConsumerWidget {
                     dense: true,
                     activeColor: activeColor,
                     value: isWifiRequired,
-                    onChanged: hasExclusiveAccess
-                        ? (isChecked) => ref
-                            .read(backupProvider.notifier)
-                            .configureBackgroundBackup(
-                              requireWifi: isChecked,
-                              onError: showErrorToUser,
-                              onBatteryInfo: showBatteryOptimizationInfoToUser,
-                            )
-                        : null,
+                    onChanged: (isChecked) => ref
+                        .read(backupProvider.notifier)
+                        .configureBackgroundBackup(
+                          requireWifi: isChecked,
+                          onError: showErrorToUser,
+                          onBatteryInfo: showBatteryOptimizationInfoToUser,
+                        ),
                   ),
                 if (isBackgroundEnabled)
                   SwitchListTile.adaptive(
@@ -314,21 +301,18 @@ class BackupControllerPage extends HookConsumerWidget {
                     dense: true,
                     activeColor: activeColor,
                     value: isChargingRequired,
-                    onChanged: hasExclusiveAccess
-                        ? (isChecked) => ref
-                            .read(backupProvider.notifier)
-                            .configureBackgroundBackup(
-                              requireCharging: isChecked,
-                              onError: showErrorToUser,
-                              onBatteryInfo: showBatteryOptimizationInfoToUser,
-                            )
-                        : null,
+                    onChanged: (isChecked) => ref
+                        .read(backupProvider.notifier)
+                        .configureBackgroundBackup(
+                          requireCharging: isChecked,
+                          onError: showErrorToUser,
+                          onBatteryInfo: showBatteryOptimizationInfoToUser,
+                        ),
                   ),
                 if (isBackgroundEnabled && Platform.isAndroid)
                   ListTile(
                     isThreeLine: false,
                     dense: true,
-                    enabled: hasExclusiveAccess,
                     title: const Text(
                       'backup_controller_page_background_delay',
                       style: TextStyle(
@@ -339,9 +323,7 @@ class BackupControllerPage extends HookConsumerWidget {
                     ),
                     subtitle: Slider(
                       value: triggerDelay.value,
-                      onChanged: hasExclusiveAccess
-                          ? (double v) => triggerDelay.value = v
-                          : null,
+                      onChanged: (double v) => triggerDelay.value = v,
                       onChangeEnd: (double v) => ref
                           .read(backupProvider.notifier)
                           .configureBackgroundBackup(
@@ -379,15 +361,13 @@ class BackupControllerPage extends HookConsumerWidget {
           if (isBackgroundEnabled && Platform.isIOS)
             FutureBuilder(
               future: ref
-                .read(backgroundServiceProvider)
-                .getIOSBackgroundAppRefreshEnabled(),
+                  .read(backgroundServiceProvider)
+                  .getIOSBackgroundAppRefreshEnabled(),
               builder: (context, snapshot) {
                 final enabled = snapshot.data as bool?;
                 // If it's not enabled, show them some kind of alert that says
                 // background refresh is not enabled
-                if (enabled != null && !enabled) {
-
-                }
+                if (enabled != null && !enabled) {}
                 // If it's enabled, no need to bother them
                 return Container();
               },
@@ -395,7 +375,7 @@ class BackupControllerPage extends HookConsumerWidget {
           if (Platform.isIOS && isBackgroundEnabled && settings != null)
             IosDebugInfoTile(
               settings: settings,
-          ),
+            ),
         ],
       );
     }
@@ -403,7 +383,9 @@ class BackupControllerPage extends HookConsumerWidget {
     Widget buildBackgroundAppRefreshWarning() {
       return ListTile(
         isThreeLine: true,
-        leading: const Icon(Icons.task_outlined,),
+        leading: const Icon(
+          Icons.task_outlined,
+        ),
         title: const Text(
           'backup_controller_page_background_app_refresh_disabled_title',
           style: TextStyle(
@@ -420,7 +402,7 @@ class BackupControllerPage extends HookConsumerWidget {
                 'backup_controller_page_background_app_refresh_disabled_content',
               ).tr(),
             ),
-          ElevatedButton(
+            ElevatedButton(
               onPressed: () => openAppSettings(),
               child: const Text(
                 'backup_controller_page_background_app_refresh_enable_button_text',
@@ -533,12 +515,9 @@ class BackupControllerPage extends HookConsumerWidget {
             ),
           ),
           trailing: ElevatedButton(
-            onPressed: hasExclusiveAccess
-                ? () {
-                    AutoRouter.of(context)
-                        .push(const BackupAlbumSelectionRoute());
-                  }
-                : null,
+            onPressed: () {
+              AutoRouter.of(context).push(const BackupAlbumSelectionRoute());
+            },
             child: const Text(
               "backup_controller_page_select",
               style: TextStyle(
@@ -598,28 +577,12 @@ class BackupControllerPage extends HookConsumerWidget {
     }
 
     buildBackgroundBackupInfo() {
-      return hasExclusiveAccess
-          ? const SizedBox.shrink()
-          : Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20), // if you need this
-                side: BorderSide(
-                  color: isDarkMode
-                      ? const Color.fromARGB(255, 56, 56, 56)
-                      : Colors.black12,
-                  width: 1,
-                ),
-              ),
-              elevation: 0,
-              borderOnForeground: false,
-              child: const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Text(
-                  "Background backup is currently running, some actions are disabled",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-            );
+      return const ListTile(
+        leading: Icon(Icons.info_outline_rounded),
+        title: Text(
+          "Background backup is currently running, cannot start manual backup",
+        ),
+      );
     }
 
     return Scaffold(
@@ -652,7 +615,6 @@ class BackupControllerPage extends HookConsumerWidget {
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ).tr(),
             ),
-            buildBackgroundBackupInfo(),
             buildFolderSelectionTile(),
             BackupInfoCard(
               title: "backup_controller_page_total".tr(),
@@ -681,22 +643,20 @@ class BackupControllerPage extends HookConsumerWidget {
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 500),
               child: Platform.isIOS
-              ? (
-                appRefreshDisabled
-                  ? buildBackgroundAppRefreshWarning()
-                  : buildBackgroundBackupController()
-              ) : buildBackgroundBackupController(),
+                  ? (appRefreshDisabled
+                      ? buildBackgroundAppRefreshWarning()
+                      : buildBackgroundBackupController())
+                  : buildBackgroundBackupController(),
             ),
             const Divider(),
             buildStorageInformation(),
             const Divider(),
             const CurrentUploadingAssetInfoBox(),
+            if (!hasExclusiveAccess) buildBackgroundBackupInfo(),
             buildBackupButton()
           ],
         ),
       ),
     );
   }
-
-
 }

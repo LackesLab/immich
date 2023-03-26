@@ -1,10 +1,10 @@
 import {
   AssetService,
-  IAlbumJob,
   IAssetJob,
   IAssetUploadedJob,
+  IBaseJob,
+  IBulkEntityJob,
   IDeleteFilesJob,
-  IDeleteJob,
   IUserDeletionJob,
   JobName,
   MediaService,
@@ -49,18 +49,38 @@ export class BackgroundTaskProcessor {
   }
 }
 
-@Processor(QueueName.MACHINE_LEARNING)
-export class MachineLearningProcessor {
+@Processor(QueueName.OBJECT_TAGGING)
+export class ObjectTaggingProcessor {
   constructor(private smartInfoService: SmartInfoService) {}
 
-  @Process({ name: JobName.IMAGE_TAGGING, concurrency: 2 })
-  async onTagImage(job: Job<IAssetJob>) {
-    await this.smartInfoService.handleTagImage(job.data);
+  @Process({ name: JobName.QUEUE_OBJECT_TAGGING, concurrency: 1 })
+  async onQueueObjectTagging(job: Job<IBaseJob>) {
+    await this.smartInfoService.handleQueueObjectTagging(job.data);
   }
 
-  @Process({ name: JobName.OBJECT_DETECTION, concurrency: 2 })
-  async onDetectObject(job: Job<IAssetJob>) {
+  @Process({ name: JobName.DETECT_OBJECTS, concurrency: 1 })
+  async onDetectObjects(job: Job<IAssetJob>) {
     await this.smartInfoService.handleDetectObjects(job.data);
+  }
+
+  @Process({ name: JobName.CLASSIFY_IMAGE, concurrency: 1 })
+  async onClassifyImage(job: Job<IAssetJob>) {
+    await this.smartInfoService.handleClassifyImage(job.data);
+  }
+}
+
+@Processor(QueueName.CLIP_ENCODING)
+export class ClipEncodingProcessor {
+  constructor(private smartInfoService: SmartInfoService) {}
+
+  @Process({ name: JobName.QUEUE_ENCODE_CLIP, concurrency: 1 })
+  async onQueueClipEncoding(job: Job<IBaseJob>) {
+    await this.smartInfoService.handleQueueEncodeClip(job.data);
+  }
+
+  @Process({ name: JobName.ENCODE_CLIP, concurrency: 1 })
+  async onEncodeClip(job: Job<IAssetJob>) {
+    await this.smartInfoService.handleEncodeClip(job.data);
   }
 }
 
@@ -79,23 +99,23 @@ export class SearchIndexProcessor {
   }
 
   @Process(JobName.SEARCH_INDEX_ALBUM)
-  async onIndexAlbum(job: Job<IAlbumJob>) {
-    await this.searchService.handleIndexAlbum(job.data);
+  onIndexAlbum(job: Job<IBulkEntityJob>) {
+    this.searchService.handleIndexAlbum(job.data);
   }
 
   @Process(JobName.SEARCH_INDEX_ASSET)
-  async onIndexAsset(job: Job<IAssetJob>) {
-    await this.searchService.handleIndexAsset(job.data);
+  onIndexAsset(job: Job<IBulkEntityJob>) {
+    this.searchService.handleIndexAsset(job.data);
   }
 
   @Process(JobName.SEARCH_REMOVE_ALBUM)
-  async onRemoveAlbum(job: Job<IDeleteJob>) {
-    await this.searchService.handleRemoveAlbum(job.data);
+  onRemoveAlbum(job: Job<IBulkEntityJob>) {
+    this.searchService.handleRemoveAlbum(job.data);
   }
 
   @Process(JobName.SEARCH_REMOVE_ASSET)
-  async onRemoveAsset(job: Job<IDeleteJob>) {
-    await this.searchService.handleRemoveAsset(job.data);
+  onRemoveAsset(job: Job<IBulkEntityJob>) {
+    this.searchService.handleRemoveAsset(job.data);
   }
 }
 
@@ -112,6 +132,11 @@ export class StorageTemplateMigrationProcessor {
 @Processor(QueueName.THUMBNAIL_GENERATION)
 export class ThumbnailGeneratorProcessor {
   constructor(private mediaService: MediaService) {}
+
+  @Process({ name: JobName.QUEUE_GENERATE_THUMBNAILS, concurrency: 1 })
+  async handleQueueGenerateThumbnails(job: Job<IBaseJob>) {
+    await this.mediaService.handleQueueGenerateThumbnails(job.data);
+  }
 
   @Process({ name: JobName.GENERATE_JPEG_THUMBNAIL, concurrency: 3 })
   async handleGenerateJpegThumbnail(job: Job<IAssetJob>) {

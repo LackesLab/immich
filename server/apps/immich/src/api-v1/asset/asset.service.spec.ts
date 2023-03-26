@@ -146,10 +146,6 @@ describe('AssetService', () => {
       getAssetByTimeBucket: jest.fn(),
       getAssetByChecksum: jest.fn(),
       getAssetCountByUserId: jest.fn(),
-      getAssetWithNoEXIF: jest.fn(),
-      getAssetWithNoThumbnail: jest.fn(),
-      getAssetWithNoSmartInfo: jest.fn(),
-      getAssetWithNoEncodedVideo: jest.fn(),
       getExistingAssets: jest.fn(),
       countByIdAndUser: jest.fn(),
     };
@@ -279,7 +275,7 @@ describe('AssetService', () => {
       expect(assetRepositoryMock.create).toHaveBeenCalled();
       expect(assetRepositoryMock.save).toHaveBeenCalledWith({
         id: 'id_1',
-        originalPath: 'upload/user_id_1/2022/2022-06-19/asset_1.jpeg',
+        originalPath: 'upload/library/user_id_1/2022/2022-06-19/asset_1.jpeg',
       });
     });
 
@@ -455,8 +451,8 @@ describe('AssetService', () => {
       ]);
 
       expect(jobMock.queue.mock.calls).toEqual([
-        [{ name: JobName.SEARCH_REMOVE_ASSET, data: { id: 'asset1' } }],
-        [{ name: JobName.SEARCH_REMOVE_ASSET, data: { id: 'asset2' } }],
+        [{ name: JobName.SEARCH_REMOVE_ASSET, data: { ids: ['asset1'] } }],
+        [{ name: JobName.SEARCH_REMOVE_ASSET, data: { ids: ['asset2'] } }],
         [
           {
             name: JobName.DELETE_FILES,

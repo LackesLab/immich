@@ -1,6 +1,6 @@
+import 'package:collection/collection.dart';
 import 'package:immich_mobile/shared/models/user.dart';
 import 'package:isar/isar.dart';
-import 'dart:convert';
 
 part 'store.g.dart';
 
@@ -9,7 +9,8 @@ part 'store.g.dart';
 /// Can be used concurrently from multiple isolates
 class Store {
   static late final Isar _db;
-  static final List<dynamic> _cache = List.filled(StoreKey.values.length, null);
+  static final List<dynamic> _cache =
+      List.filled(StoreKey.values.map((e) => e.id).max + 1, null);
 
   /// Initializes the store (call exactly once per app start)
   static void init(Isar db) {
@@ -24,12 +25,21 @@ class Store {
     return _db.writeTxn(() => _db.storeValues.clear());
   }
 
-  /// Returns the stored value for the given key, or the default value if null
-  static T? get<T>(StoreKey key, [T? defaultValue]) =>
-      _cache[key.id] ?? defaultValue;
+  /// Returns the stored value for the given key or if null the [defaultValue]
+  /// Throws a [StoreKeyNotFoundException] if both are null
+  static T get<T>(StoreKey<T> key, [T? defaultValue]) {
+    final value = _cache[key.id] ?? defaultValue;
+    if (value == null) {
+      throw StoreKeyNotFoundException(key);
+    }
+    return value;
+  }
+
+  /// Returns the stored value for the given key (possibly null)
+  static T? tryGet<T>(StoreKey<T> key) => _cache[key.id];
 
   /// Stores the value synchronously in the cache and asynchronously in the DB
-  static Future<void> put<T>(StoreKey key, T value) {
+  static Future<void> put<T>(StoreKey<T> key, T value) {
     _cache[key.id] = value;
     return _db.writeTxn(
       () async => _db.storeValues.put(await StoreValue._of(value, key)),
@@ -37,7 +47,7 @@ class Store {
   }
 
   /// Removes the value synchronously from the cache and asynchronously from the DB
-  static Future<void> delete(StoreKey key) {
+  static Future<void> delete<T>(StoreKey<T> key) {
     _cache[key.id] = null;
     return _db.writeTxn(() => _db.storeValues.delete(key.id));
   }
@@ -56,7 +66,8 @@ class Store {
   static void _onChangeListener(List<StoreValue>? data) {
     if (data != null) {
       for (StoreValue value in data) {
-        _cache[value.id] = value._extract(StoreKey.values[value.id]);
+        _cache[value.id] =
+            value._extract(StoreKey.values.firstWhere((e) => e.id == value.id));
       }
     }
   }
@@ -70,52 +81,114 @@ class StoreValue {
   int? intValue;
   String? strValue;
 
-  T? _extract<T>(StoreKey key) => key.isInt
-      ? (key.fromDb == null ? intValue : key.fromDb!.call(Store._db, intValue!))
-      : (key.fromJson != null
-          ? key.fromJson!(json.decode(strValue!))
-          : strValue);
-  static Future<StoreValue> _of(dynamic value, StoreKey key) async =>
-      StoreValue(
-        key.id,
-        intValue: key.isInt
-            ? (key.toDb == null
-                ? value
-                : await key.toDb!.call(Store._db, value))
-            : null,
-        strValue: key.isInt
+  T? _extract<T>(StoreKey<T> key) {
+    switch (key.type) {
+      case int:
+        return intValue as T?;
+      case bool:
+        return intValue == null ? null : (intValue! == 1) as T;
+      case DateTime:
+        return intValue == null
             ? null
-            : (key.fromJson == null ? value : json.encode(value.toJson())),
-      );
+            : DateTime.fromMicrosecondsSinceEpoch(intValue!) as T;
+      case String:
+        return strValue as T?;
+      default:
+        if (key.fromDb != null) {
+          return key.fromDb!.call(Store._db, intValue!);
+        }
+    }
+    throw TypeError();
+  }
+
+  static Future<StoreValue> _of<T>(T? value, StoreKey<T> key) async {
+    int? i;
+    String? s;
+    switch (key.type) {
+      case int:
+        i = value as int?;
+        break;
+      case bool:
+        i = value == null ? null : (value == true ? 1 : 0);
+        break;
+      case DateTime:
+        i = value == null ? null : (value as DateTime).microsecondsSinceEpoch;
+        break;
+      case String:
+        s = value as String?;
+        break;
+      default:
+        if (key.toDb != null) {
+          i = await key.toDb!.call(Store._db, value);
+          break;
+        }
+        throw TypeError();
+    }
+    return StoreValue(key.id, intValue: i, strValue: s);
+  }
+}
+
+class StoreKeyNotFoundException implements Exception {
+  final StoreKey key;
+  StoreKeyNotFoundException(this.key);
+  @override
+  String toString() => "Key '${key.name}' not found in Store";
 }
 
 /// Key for each possible value in the `Store`.
-/// Defines the data type (int, String, JSON) for each value
-enum StoreKey {
-  userRemoteId(0),
-  assetETag(1),
-  currentUser(2, isInt: true, fromDb: _getUser, toDb: _toUser),
-  deviceIdHash(3, isInt: true),
-  deviceId(4),
+/// Defines the data type for each value
+enum StoreKey<T> {
+  userRemoteId<String>(0, type: String),
+  assetETag<String>(1, type: String),
+  currentUser<User>(2, type: User, fromDb: _getUser, toDb: _toUser),
+  deviceIdHash<int>(3, type: int),
+  deviceId<String>(4, type: String),
+  backupFailedSince<DateTime>(5, type: DateTime),
+  backupRequireWifi<bool>(6, type: bool),
+  backupRequireCharging<bool>(7, type: bool),
+  backupTriggerDelay<int>(8, type: int),
+  githubReleaseInfo<String>(9, type: String),
+  serverUrl<String>(10, type: String),
+  accessToken<String>(11, type: String),
+  serverEndpoint<String>(12, type: String),
+  autoBackup<bool>(13, type: bool),
+  // user settings from [AppSettingsEnum] below:
+  loadPreview<bool>(100, type: bool),
+  loadOriginal<bool>(101, type: bool),
+  themeMode<String>(102, type: String),
+  tilesPerRow<int>(103, type: int),
+  dynamicLayout<bool>(104, type: bool),
+  groupAssetsBy<int>(105, type: int),
+  uploadErrorNotificationGracePeriod<int>(106, type: int),
+  backgroundBackupTotalProgress<bool>(107, type: bool),
+  backgroundBackupSingleProgress<bool>(108, type: bool),
+  storageIndicator<bool>(109, type: bool),
+  thumbnailCacheSize<int>(110, type: int),
+  imageCacheSize<int>(111, type: int),
+  albumThumbnailCacheSize<int>(112, type: int),
+  selectedAlbumSortOrder<int>(113, type: int),
   ;
 
   const StoreKey(
     this.id, {
-    this.isInt = false,
+    required this.type,
     this.fromDb,
     this.toDb,
-    // ignore: unused_element
-    this.fromJson,
   });
   final int id;
-  final bool isInt;
-  final dynamic Function(Isar, int)? fromDb;
-  final Future<int> Function(Isar, dynamic)? toDb;
-  final Function(dynamic)? fromJson;
+  final Type type;
+  final T? Function<T>(Isar, int)? fromDb;
+  final Future<int> Function<T>(Isar, T)? toDb;
 }
 
-User? _getUser(Isar db, int i) => db.users.getSync(i);
-Future<int> _toUser(Isar db, dynamic u) {
-  User user = (u as User);
-  return db.users.put(user);
+T? _getUser<T>(Isar db, int i) {
+  final User? u = db.users.getSync(i);
+  return u as T?;
+}
+
+Future<int> _toUser<T>(Isar db, T u) {
+  if (u is User) {
+    return db.users.put(u);
+  }
+  throw TypeError();
 }

@@ -1,31 +1,59 @@
-import { APP_UPLOAD_LOCATION } from '@app/common/constants';
-import { AssetEntity } from '@app/infra';
-import { IAssetJob, IAssetRepository, JobName, QueueName, SystemConfigService } from '@app/domain';
+import {
+  IAssetJob,
+  IAssetRepository,
+  IBaseJob,
+  IJobRepository,
+  IStorageRepository,
+  JobName,
+  QueueName,
+  StorageCore,
+  StorageFolder,
+  SystemConfigService,
+  WithoutProperty,
+} from '@app/domain';
+import { AssetEntity, AssetType } from '@app/infra';
 import { Process, Processor } from '@nestjs/bull';
 import { Inject, Logger } from '@nestjs/common';
 import { Job } from 'bull';
 import ffmpeg, { FfprobeData } from 'fluent-ffmpeg';
-import { existsSync, mkdirSync } from 'fs';
+import { join } from 'path';
 
 @Processor(QueueName.VIDEO_CONVERSION)
 export class VideoTranscodeProcessor {
   readonly logger = new Logger(VideoTranscodeProcessor.name);
+  private storageCore = new StorageCore();
+
   constructor(
     @Inject(IAssetRepository) private assetRepository: IAssetRepository,
+    @Inject(IJobRepository) private jobRepository: IJobRepository,
     private systemConfigService: SystemConfigService,
+    @Inject(IStorageRepository) private storageRepository: IStorageRepository,
   ) {}
 
-  @Process({ name: JobName.VIDEO_CONVERSION, concurrency: 2 })
-  async videoConversion(job: Job<IAssetJob>) {
-    const { asset } = job.data;
-    const basePath = APP_UPLOAD_LOCATION;
-    const encodedVideoPath = `${basePath}/${asset.ownerId}/encoded-video`;
-
-    if (!existsSync(encodedVideoPath)) {
-      mkdirSync(encodedVideoPath, { recursive: true });
+  @Process({ name: JobName.QUEUE_VIDEO_CONVERSION, concurrency: 1 })
+  async handleQueueVideoConversion(job: Job<IBaseJob>): Promise<void> {
+    try {
+      const { force } = job.data;
+      const assets = force
+        ? await this.assetRepository.getAll({ type: AssetType.VIDEO })
+        : await this.assetRepository.getWithout(WithoutProperty.ENCODED_VIDEO);
+      for (const asset of assets) {
+        await this.jobRepository.queue({ name: JobName.VIDEO_CONVERSION, data: { asset } });
+      }
+    } catch (error: any) {
+      this.logger.error('Failed to queue video conversions', error.stack);
     }
+  }
 
-    const savedEncodedPath = `${encodedVideoPath}/${asset.id}.mp4`;
+  @Process({ name: JobName.VIDEO_CONVERSION, concurrency: 2 })
+  async handleVideoConversion(job: Job<IAssetJob>) {
+    const { asset } = job.data;
+
+    const encodedVideoPath = this.storageCore.getFolderLocation(StorageFolder.ENCODED_VIDEO, asset.ownerId);
+
+    this.storageRepository.mkdirSync(encodedVideoPath);
+
+    const savedEncodedPath = join(encodedVideoPath, `${asset.id}.mp4`);
 
     await this.runVideoEncode(asset, savedEncodedPath);
   }

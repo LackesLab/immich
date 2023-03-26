@@ -15,6 +15,7 @@ import {
   AuthUserDto,
   ExifResponseDto,
   mapUser,
+  SearchResult,
   SharedLinkResponseDto,
 } from '../src';
 
@@ -110,6 +111,30 @@ export const fileStub = {
 };
 
 export const assetEntityStub = {
+  noResizePath: Object.freeze<AssetEntity>({
+    id: 'asset-id',
+    deviceAssetId: 'device-asset-id',
+    fileModifiedAt: '2023-02-23T05:06:29.716Z',
+    fileCreatedAt: '2023-02-23T05:06:29.716Z',
+    owner: userEntityStub.user1,
+    ownerId: 'user-id',
+    deviceId: 'device-id',
+    originalPath: 'upload/upload/path.ext',
+    resizePath: null,
+    type: AssetType.IMAGE,
+    webpPath: null,
+    encodedVideoPath: null,
+    createdAt: '2023-02-23T05:06:29.716Z',
+    updatedAt: '2023-02-23T05:06:29.716Z',
+    mimeType: null,
+    isFavorite: true,
+    duration: null,
+    isVisible: true,
+    livePhotoVideo: null,
+    livePhotoVideoId: null,
+    tags: [],
+    sharedLinks: [],
+  }),
   image: Object.freeze<AssetEntity>({
     id: 'asset-id',
     deviceAssetId: 'device-asset-id',
@@ -119,8 +144,32 @@ export const assetEntityStub = {
     ownerId: 'user-id',
     deviceId: 'device-id',
     originalPath: '/original/path.ext',
-    resizePath: null,
+    resizePath: '/uploads/user-id/thumbs/path.ext',
     type: AssetType.IMAGE,
+    webpPath: null,
+    encodedVideoPath: null,
+    createdAt: '2023-02-23T05:06:29.716Z',
+    updatedAt: '2023-02-23T05:06:29.716Z',
+    mimeType: null,
+    isFavorite: true,
+    duration: null,
+    isVisible: true,
+    livePhotoVideo: null,
+    livePhotoVideoId: null,
+    tags: [],
+    sharedLinks: [],
+  }),
+  video: Object.freeze<AssetEntity>({
+    id: 'asset-id',
+    deviceAssetId: 'device-asset-id',
+    fileModifiedAt: '2023-02-23T05:06:29.716Z',
+    fileCreatedAt: '2023-02-23T05:06:29.716Z',
+    owner: userEntityStub.user1,
+    ownerId: 'user-id',
+    deviceId: 'device-id',
+    originalPath: '/original/path.ext',
+    resizePath: '/uploads/user-id/thumbs/path.ext',
+    type: AssetType.VIDEO,
     webpPath: null,
     encodedVideoPath: null,
     createdAt: '2023-02-23T05:06:29.716Z',
@@ -448,6 +497,7 @@ export const sharedLinkStub = {
             tags: [],
             objects: ['a', 'b', 'c'],
             asset: null as any,
+            clipEmbedding: [0.12, 0.13, 0.14],
           },
           webpPath: '',
           encodedVideoPath: '',
@@ -550,3 +600,13 @@ export const sharedLinkResponseStub = {
 
 // TODO - the constructor isn't used anywhere, so not test coverage
 new ExifResponseDto();
+
+export const searchStub = {
+  emptyResults: Object.freeze<SearchResult<any>>({
+    total: 0,
+    count: 0,
+    page: 1,
+    items: [],
+    facets: [],
+  }),
+};
